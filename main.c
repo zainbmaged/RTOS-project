@@ -241,6 +241,75 @@ void DriverDown(void *pvParameters){
 
 //------------------------------------------------------------------------------Ports handlers----------------------------------------------------
 
+void PortA_Init(void){
+		// Motor on pins A2, A3
+		MOTOR_INIT();
+	
+		// Window Lock on pin A4 - Limit Switches on A6, A7
+		SYSCTL->RCGCGPIO |= 0x00000001;
+		GPIOA->CR |= 0x10;
+		GPIOA->DIR &= ~0x10;
+		GPIOA->PUR |= 0x10;
+		GPIOA->DEN |= 0x10;
+	
+		GPIOA->CR |= 0xC0;
+		GPIOA->DIR &= ~0xC0;
+		GPIOA->PUR |= 0xC0;
+		GPIOA->DEN |= 0xC0;
+	
+		GPIOA->DATA = 0x00;
+}
+
+// Initialize the interrupt for Port D 
+void PortD_Init(void) {
+    SYSCTL->RCGCGPIO |= 0x00000008; 
+    GPIO_PORTD_LOCK_R = GPIO_LOCK_KEY; 
+    GPIO_PORTD_CR_R |= 0xCC; 
+    GPIO_PORTD_AMSEL_R = 0x00; 
+    GPIO_PORTD_PCTL_R = 0x00000000; 
+    GPIO_PORTD_DIR_R &= ~0xCC; 
+    GPIO_PORTD_AFSEL_R = 0x00; 
+    GPIO_PORTD_PUR_R |= 0xCC; 
+    GPIO_PORTD_DEN_R |= 0xCC; 
+    
+    // Setup interrupts for Port D pins
+    GPIO_PORTD_ICR_R = 0xCC; 
+    GPIO_PORTD_IM_R |= 0xCC; 
+    GPIO_PORTD_IS_R &= ~0xCC; 
+    GPIO_PORTD_IBE_R &= ~0xCC; 
+    GPIO_PORTD_IEV_R &= ~0xCC; 
+    NVIC_EnableIRQ(PortD_IRQn);
+    NVIC_PRI0_R = (NVIC_PRI0_R & 0x00FFFFFF) | 0xA0000000; 
+}
+
+
+
+    
+    
+ 
+
+//Initialize the interrupt for Port-F
+void PortF_Init(void){
+		SYSCTL->RCGCGPIO |= 0x00000020; 
+		GPIOF->LOCK = 0x4C4F434B; 
+		GPIOF->CR = 0x11; 
+		GPIOF->AMSEL= 0x00;
+		GPIOF->PCTL = 0x00000000; 
+		GPIOF->DIR = 0x0E; 
+		GPIOF->AFSEL = 0x00; 
+		GPIOF->PUR = 0x11; 
+		GPIOF->DEN = 0x11; 
+		GPIOF->DATA = 0x00;
+	
+		
+		GPIOF->ICR = 0x11; 
+		GPIOF->IM |=0x11; 
+		GPIOF->IS |= 0x11; 
+		GPIOF->IEV &= ~0x11; 
+		NVIC_EnableIRQ(PortF_IRQn); 
+	  NVIC_PRI7_R = (NVIC_PRI7_R & 0xFF00FFFF) | 0x00600000;  
+}
+
 
 int main(void) {
 	
