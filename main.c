@@ -92,6 +92,19 @@ void White_OFF(void){
     Green_OFF();
 }
 //---------------------------------------------------------------------GPIO handler------------------------------------------------------------
+void GPIOF_Handler(void){
+	portBASE_TYPE xHigherPriorityTaskWoken = pdFALSE;
+	
+	// Give semaphore 
+	xSemaphoreGiveFromISR( jamSemaphore, &xHigherPriorityTaskWoken );
+	
+	char jamFlag = 0;
+	xQueueOverwriteFromISR(jamQueue, &jamFlag, &xHigherPriorityTaskWoken);
+	
+	// Clear the interrupt 
+  GPIOF->ICR = 0x11;
+	portEND_SWITCHING_ISR( xHigherPriorityTaskWoken );
+}
 
 
 //--------------------------------------------------------------------motor--------------------------------------------------------------------
