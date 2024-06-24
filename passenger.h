@@ -1,28 +1,32 @@
-// passenger.h
-
 #ifndef PASSENGER_H
 #define PASSENGER_H
 
 #include <stdint.h>
-#include "FreeRTOS.h"
-#include "semphr.h"
+#include <FreeRTOS.h>
+#include <task.h>
 
-// Define Pins for Limit Switches and Push Buttons
-#define TOP_LIMIT_SWITCH_PIN GPIO_PIN_0
-#define BOTTOM_LIMIT_SWITCH_PIN GPIO_PIN_1
-#define PASSENGER_UP_PIN GPIO_PIN_5
-#define PASSENGER_DOWN_PIN GPIO_PIN_6
-#define JAM_DETECTION_PIN GPIO_PIN_3
-#define WINDOW_LOCK_PIN GPIO_PIN_7
+// Semaphores
+extern SemaphoreHandle_t passengerUpSemaphore;
+extern SemaphoreHandle_t passengerDownSemaphore;
+extern SemaphoreHandle_t motorMutex;
 
-extern xSemaphoreHandle xMutex;
-extern xSemaphoreHandle xBinarySemaphoreUp;    // Passenger up semaphore
-extern xSemaphoreHandle xBinarySemaphoreDown;  // Passenger down semaphore
+// Queues
+extern QueueHandle_t driverQueue;
+extern QueueHandle_t jamQueue;
 
-void PassengerUp(void *pvParameters);
-void PassengerDown(void *pvParameters);
+// GPIO Macros 
+#define Red_ON()        // Macro to turn on red LED
+#define White_OFF()     // Macro to turn off white LED
+#define Blue_ON()        // Macro to turn on blue LED (optional for jam indication)
+#define MOTOR_ROTATE(dir) // Macro to control motor direction (FORWARD/BACKWARD)
+#define MOTOR_STOP()     // Macro to stop the motor
+#define Delay_Ms(ms)     // Macro to delay for milliseconds
 
-void Motor_Control(int direction);
-uint8_t ReadPin(uint32_t *port, uint8_t pin);
+// Limits and Flags
+extern bool passengerUp;
+extern bool passengerDown;
+extern bool uLimit;  // Upper floor limit
+extern bool dLimit;  // Lower floor limit
+extern bool Lock;    // Safety lock flag
 
-#endif // PASSENGER_H
+#endif /* PASSENGER_H */
