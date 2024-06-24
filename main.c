@@ -109,6 +109,26 @@ void GPIOF_Handler(void){
 
 //--------------------------------------------------------------------motor--------------------------------------------------------------------
 
+void MOTOR_INIT(void){
+	GPIO_init(PORTA, PIN2, DIGITAL, OUTPUT);
+	GPIO_init(PORTA, PIN3, DIGITAL, OUTPUT);
+}
+
+void MOTOR_ROTATE(uint8_t direction){
+	if (direction){
+		GPIO_setPin(PORTA, PIN2);
+		GPIO_clearPin(PORTA, PIN3);
+	}
+	else{
+		GPIO_clearPin(PORTA, PIN2);
+		GPIO_setPin(PORTA, PIN3);
+	}
+}
+		
+void MOTOR_STOP(void){
+	GPIO_clearPin(PORTA, PIN2);
+	GPIO_clearPin(PORTA, PIN3);
+}
 
 //---------------------------------------------------------------jam------------------------------------------
 void jam(void *pvParameters){
