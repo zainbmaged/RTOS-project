@@ -98,6 +98,23 @@ void White_OFF(void){
 
 
 //---------------------------------------------------------------jam------------------------------------------
+void jam(void *pvParameters){
+	xSemaphoreTake(driverUpSemaphore, 0);
+	for(;;){
+		xSemaphoreTake( jamSemaphore, portMAX_DELAY );
+		xSemaphoreTake( motorMutex, portMAX_DELAY);
+		
+		White_OFF();
+		Green_ON();
+		MOTOR_ROTATE(BACKWARD);
+		Delay_Ms(200);
+		
+		MOTOR_STOP();
+		White_OFF();
+		xSemaphoreGive(motorMutex);
+	}
+}
+
 
 //-------------------------------------------------------------------Driver Tasks--------------------------------------------------------
 
