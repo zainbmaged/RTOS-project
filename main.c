@@ -106,8 +106,8 @@ void GPIOF_Handler(void){
 	portEND_SWITCHING_ISR( xHigherPriorityTaskWoken );
 }
 
-
 //--------------------------------------------------------------------motor--------------------------------------------------------------------
+
 
 void MOTOR_INIT(void){
 	GPIO_init(PORTA, PIN2, DIGITAL, OUTPUT);
@@ -129,7 +129,6 @@ void MOTOR_STOP(void){
 	GPIO_clearPin(PORTA, PIN2);
 	GPIO_clearPin(PORTA, PIN3);
 }
-
 //---------------------------------------------------------------jam------------------------------------------
 void jam(void *pvParameters){
 	xSemaphoreTake(driverUpSemaphore, 0);
@@ -147,10 +146,7 @@ void jam(void *pvParameters){
 		xSemaphoreGive(motorMutex);
 	}
 }
-
-
 //-------------------------------------------------------------------Driver Tasks--------------------------------------------------------
-
 void DriverUp(void *pvParameters){
 	xSemaphoreTake(driverUpSemaphore, 0);
 	for(;;){
@@ -237,10 +233,10 @@ void DriverDown(void *pvParameters){
 	}
 }
 
-//-----------------------------------------------------------------------------Passenger Tasks---------------------------------------------------
+
+
 
 //------------------------------------------------------------------------------Ports handlers----------------------------------------------------
-
 void PortA_Init(void){
 		// Motor on pins A2, A3
 		MOTOR_INIT();
@@ -259,6 +255,8 @@ void PortA_Init(void){
 	
 		GPIOA->DATA = 0x00;
 }
+
+
 
 // Initialize the interrupt for Port D 
 void PortD_Init(void) {
@@ -283,10 +281,43 @@ void PortD_Init(void) {
 }
 
 
+void GPIOD_Handler(void) {
+	
+		portBASE_TYPE xHigherPriorityTaskWoken = pdFALSE;
 
     
+    if (GPIO_PORTD_RIS_R & (1 << 2)) {
+				xSemaphoreGiveFromISR( driverUpSemaphore, &xHigherPriorityTaskWoken );
+				char driverFlag = 0;
+				xQueueOverwriteFromISR(driverQueue, &driverFlag, &xHigherPriorityTaskWoken);
+        GPIO_PORTD_ICR_R |= (1 << 2); 
+				portEND_SWITCHING_ISR( xHigherPriorityTaskWoken );
+    }
     
- 
+   
+    else if (GPIO_PORTD_RIS_R & (1 << 3)) {
+				xSemaphoreGiveFromISR( driverDownSemaphore, &xHigherPriorityTaskWoken );
+				char driverFlag = 0;
+				xQueueOverwriteFromISR(driverQueue, &driverFlag, &xHigherPriorityTaskWoken);
+        GPIO_PORTD_ICR_R |= (1 << 3); 
+				portEND_SWITCHING_ISR( xHigherPriorityTaskWoken );
+    }
+    
+    
+    else if (GPIO_PORTD_RIS_R & (1 << 6)) {
+				xSemaphoreGiveFromISR( passengerUpSemaphore, &xHigherPriorityTaskWoken );
+        GPIO_PORTD_ICR_R |= (1 << 6); 
+				portEND_SWITCHING_ISR( xHigherPriorityTaskWoken );
+    }
+    
+    
+    else if (GPIO_PORTD_RIS_R & (1 << 7)) {
+				xSemaphoreGiveFromISR( passengerDownSemaphore, &xHigherPriorityTaskWoken );
+        GPIO_PORTD_ICR_R |= (1 << 7); 
+				portEND_SWITCHING_ISR( xHigherPriorityTaskWoken );
+    }
+}
+
 
 //Initialize the interrupt for Port-F
 void PortF_Init(void){
@@ -309,6 +340,9 @@ void PortF_Init(void){
 		NVIC_EnableIRQ(PortF_IRQn); 
 	  NVIC_PRI7_R = (NVIC_PRI7_R & 0xFF00FFFF) | 0x00600000;  
 }
+
+
+
 
 
 int main(void) {
