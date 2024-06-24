@@ -131,6 +131,91 @@ void jam(void *pvParameters){
 
 //-------------------------------------------------------------------Driver Tasks--------------------------------------------------------
 
+void DriverUp(void *pvParameters){
+	xSemaphoreTake(driverUpSemaphore, 0);
+	for(;;){
+		xSemaphoreTake( driverUpSemaphore, portMAX_DELAY );
+		
+		if(!driverUp && uLimit){
+			char jamFlag = 1;
+			
+			start = xTaskGetTickCount();
+			xSemaphoreTake( motorMutex, portMAX_DELAY); 
+			while((!driverUp )&& uLimit){
+				Red_ON();
+				MOTOR_ROTATE(FORWARD);
+				if(!uLimit){
+					
+				  MOTOR_STOP();
+					xSemaphoreGive(motorMutex); 
+						break;
+				}
+			}
+			
+			xSemaphoreGive(motorMutex); 
+			end = xTaskGetTickCount();
+			if((end - start < 100)){
+				while(uLimit && jamFlag){
+					MOTOR_ROTATE(FORWARD);
+					Blue_ON();
+					xQueuePeek(jamQueue, &jamFlag, 0);
+					if(!uLimit){
+					
+				  MOTOR_STOP();
+					xSemaphoreGive(motorMutex); 
+						break;
+				}
+				}
+			}
+			char sendValue = 1;
+			xQueueOverwrite(jamQueue, &sendValue);
+			MOTOR_STOP();
+			White_OFF();
+			Delay_Ms(1); 
+		}
+	}
+}
+
+
+void DriverDown(void *pvParameters){
+	xSemaphoreTake(driverDownSemaphore, 0);
+	for(;;){
+		xSemaphoreTake( driverDownSemaphore, portMAX_DELAY );
+		
+		if(!driverDown && dLimit){			
+			start = xTaskGetTickCount();
+			xSemaphoreTake( motorMutex, portMAX_DELAY); 
+			while(!driverDown && dLimit){
+				Red_ON();
+				MOTOR_ROTATE(BACKWARD);
+				if(!dLimit){
+					
+				  MOTOR_STOP();
+					xSemaphoreGive(motorMutex); 
+						break;
+				}
+			}
+			
+			xSemaphoreGive(motorMutex); 
+			end = xTaskGetTickCount();
+			if((end - start < 100)){
+				while(dLimit){
+					MOTOR_ROTATE(BACKWARD);
+					Blue_ON();
+					if(!dLimit){
+					
+				  MOTOR_STOP();
+					xSemaphoreGive(motorMutex); 
+						break;
+				}
+				}
+			}
+			MOTOR_STOP();
+			White_OFF();
+			Delay_Ms(1); 
+		}
+	}
+}
 
 //-----------------------------------------------------------------------------Passenger Tasks---------------------------------------------------
 
